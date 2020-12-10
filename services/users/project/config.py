@@ -1,0 +1,15 @@
+class BaseConfig:
+    """Base Configuration"""
+    TESTING = False
+
+class DevelopmentConfig(BaseConfig):
+    """Development configuration"""
+    pass
+
+class TestingConfig(BaseConfig):
+    """Testing configuration"""
+    pass
+
+class ProductionConfig(BaseConfig):
+    """Production configuration"""
+    pass
