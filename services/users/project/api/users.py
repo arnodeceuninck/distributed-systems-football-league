@@ -5,14 +5,12 @@ from sqlalchemy import exc
 
 users_blueprint = Blueprint('users', __name__, template_folder='./templates')
 
-
 @users_blueprint.route('/users/ping', methods=['GET'])
-def pint_pong():
+def ping_pong():
     return jsonify({
         'status': 'success',
         'message': 'pong!'
     })
-
 
 @users_blueprint.route('/users', methods=['POST'])
 def add_user():

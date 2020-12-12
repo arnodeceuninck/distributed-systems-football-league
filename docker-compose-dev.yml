@@ -58,3 +58,15 @@ services:
       - DATABASE_TEST_URL=postgres://postgres:postgres@clubs-db:5432/users_test
     depends_on:
       - users-db
+
+  nginx:
+    build:
+      context: ./services/nginx
+      dockerfile: Dockerfile-dev
+    restart: always
+    ports:
+      - 80:80
+    depends_on:
+      - users
+      - matches
+      - clubs
