@@ -10,9 +10,10 @@ class User(db.Model):
     password = db.Column(db.String(128), nullable=False)
     team_id = db.Column(db.Integer, nullable=True)
 
-    def __init__(self, username, email):
+    def __init__(self, username, email, password="password"):
         self.username = username
         self.email = email
+        self.password = password # Hashing passwords is out of the scope of this course
 
     def to_json(self):
-        return {'id': self.id, 'username': self.username, 'email': self.email, 'active': self.active}
+        return {'id': self.id, 'username': self.username, 'email': self.email}
