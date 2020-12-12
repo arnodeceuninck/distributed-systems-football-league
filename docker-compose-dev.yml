@@ -26,3 +26,35 @@ services:
     environment:
       - POSTGRESS_USER=postgres
       - POSTGRESS_PASSWORD=postgres
+
+  matches:
+    build:
+      context: ./services/matches
+      dockerfile: Dockerfile-dev
+    volumes:
+      - './services/matches:/usr/src/app'
+    ports:
+      - 5002:5000
+    environment:
+      - FLAK_ENV=development
+      - APP_SETTINGS=project.config.DevelopmentConfig
+      - DATABASE_URL=postgres://postgres:postgres@matches-db:5432/users_dev
+      - DATABASE_TEST_URL=postgres://postgres:postgres@matches-db:5432/users_test
+    depends_on:
+      - users-db
+
+  clubs:
+    build:
+      context: ./services/clubs
+      dockerfile: Dockerfile-dev
+    volumes:
+      - './services/clubs:/usr/src/app'
+    ports:
+      - 5003:5000
+    environment:
+      - FLAK_ENV=development
+      - APP_SETTINGS=project.config.DevelopmentConfig
+      - DATABASE_URL=postgres://postgres:postgres@clubs-db:5432/users_dev
+      - DATABASE_TEST_URL=postgres://postgres:postgres@clubs-db:5432/users_test
+    depends_on:
+      - users-db
