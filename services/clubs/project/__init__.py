@@ -23,6 +23,9 @@ def create_app(script_info=None):
     from project.api.clubs import clubs_blueprint
     app.register_blueprint(clubs_blueprint)
 
+    from project.api.teams import teams_blueprint
+    app.register_blueprint(teams_blueprint)
+
     # shell context for flask cli
     @app.shell_context_processor
     def ctx():

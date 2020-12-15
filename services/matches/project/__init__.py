@@ -23,6 +23,12 @@ def create_app(script_info=None):
     from project.api.matches import matches_blueprint
     app.register_blueprint(matches_blueprint)
 
+    from project.api.divisions import divisions_blueprint
+    app.register_blueprint(divisions_blueprint)
+
+    from project.api.referees import referees_blueprint
+    app.register_blueprint(referees_blueprint)
+
     # shell context for flask cli
     @app.shell_context_processor
     def ctx():
