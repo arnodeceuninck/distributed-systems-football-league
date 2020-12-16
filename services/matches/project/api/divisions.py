@@ -157,7 +157,14 @@ def get_division_stats(division_id):
 
             best_attack = max(goals_per_team, key=lambda x: goals_per_team[x]["goals_scored"])
             best_defense = min(goals_per_team, key=lambda x: goals_per_team[x]["goals_against"])
+
+
             most_clean_sheets = None
+            for team in goals_per_team:
+                if goals_per_team[team]["goals_scored"] == 0:
+                    most_clean_sheets = team
+                    break
+
             # TODO: Team most goals, team least goals conceded, team most clean sheets
             response_object = {
                 'status': 'success',

@@ -17,6 +17,24 @@ services:
     depends_on:
       - users-db
 
+  client:
+    build:
+      context: ./services/client
+      dockerfile: Dockerfile-dev
+    volumes:
+      - './services/client:/usr/src/app'
+    ports:
+      - 5004:5000
+    environment:
+      - FLAK_ENV=development
+      - APP_SETTINGS=project.config.DevelopmentConfig
+      - DATABASE_URL=postgres://postgres:postgres@users-db:5432/users_dev
+      - DATABASE_TEST_URL=postgres://postgres:postgres@users-db:5432/users_test
+    depends_on:
+      - users-db
+      - users
+      - clubs
+
   users-db:
     build:
       context: ./services/users/project/db
@@ -70,3 +88,4 @@ services:
       - users
       - matches
       - clubs
+      - client

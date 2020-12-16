@@ -90,9 +90,9 @@ class TestMatcheservice(BaseTestCase):
         division = add_division("Cara pro leauge")
         match1 = add_match(division_id=division.id, matchweek=70, time="14:00:00", home=25, away=65, date="1943-12-23", goals_home=0, goals_away=1)
         match2 = add_match(division_id=division.id, matchweek=69, time="14:00:00", home=65, away=25, date="1943-12-31", goals_home=1, goals_away=6)
-        match4 = add_match(division_id=division.id, matchweek=69, time="14:00:00", home=25, away=42, date="1943-12-31", goals_home=1, goals_away=5)
+        match4 = add_match(division_id=division.id, matchweek=69, time="14:00:00", home=25, away=42, date="1943-12-31", goals_home=1, goals_away=0)
         other_division = add_division("Cara noob leauge")
-        match3 = add_match(division_id=other_division.id, matchweek=70, time="14:00:00", home=25, away=65, date="1943-12-23", goals_home=0, goals_away=1)
+        match3 = add_match(division_id=other_division.id, matchweek=70, time="14:00:00", home=25, away=65, date="1943-12-23", goals_home=0, goals_away=200)
         with self.client:
             response = self.client.get(f'/divisions/{division.id}/stats')
             data = json.loads(response.data.decode())
@@ -101,7 +101,7 @@ class TestMatcheservice(BaseTestCase):
             self.assertEqual(7, data['data']['best_attack']["count"])
             self.assertEqual(42, data['data']['best_defense']["team"])
             self.assertEqual(1, data['data']['best_defense']["count"])
-
+            self.assertEqual(42, data['data']['most_clean_sheets'])
 
 if __name__ == '__main__':
     unittest.main()

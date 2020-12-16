@@ -1,9 +1,9 @@
 from flask import Blueprint, jsonify, request, render_template
 #from project.api.models import User
 from project import db
-from sqlalchemy import exc
+from sqlalchemy import exc, or_, and_, desc, func, asc
 from project.api.models import Match
-
+from  datetime import date
 matches_blueprint = Blueprint('matches', __name__, template_folder='./templates')
 
 
@@ -76,12 +76,52 @@ def get_all_matches():
     }
     return jsonify(response_object), 200
 
-@matches_blueprint.route('/matches/stats/<team_1>/vs/<team2>', methods=['GET'])
+@matches_blueprint.route('/matches/stats/<team1>/vs/<team2>', methods=['GET'])
 def get_match_stats(team1, team2):
-    # TODO: Times played together, times winner, result previous 5 matches
     response_object = {
-        'status': 'success',
-        'data': {'matches': [match.to_json() for match in Match.query.all()]}
+        'status': 'fail',
+        'message': 'Match does not exist'
     }
-    return jsonify(response_object), 200
+    try:
+        previous_matches = Match.query.filter(func.date(Match.date) < date.today())
+        matches = previous_matches.filter(or_(and_(Match.home == team1, Match.away == team2),
+                                                      and_(Match.home == team1, Match.away == team2)))
+        total_matches_played = matches.count()
+        times_1_won = matches.filter(or_(and_(Match.home == team1, Match.goals_home > Match.goals_away),
+                                             and_(Match.away == team1, Match.goals_away > Match.goals_home))).count()
+        times_2_won = matches.filter(or_(and_(Match.home == team2, Match.goals_home > Match.goals_away),
+                                             and_(Match.away == team2, Match.goals_away > Match.goals_home))).count()
+        last_3_together = matches.order_by(desc(Match.date)).limit(3).all()
+        last_5_team1 = previous_matches.filter(or_(Match.home == team1, Match.away == team1)).order_by(desc(Match.date)).limit(5).all()
+        last_5_team2 = previous_matches.filter(or_(Match.home == team2, Match.away == team2)).order_by(desc(Match.date)).limit(5).all()
 
+        response_object = {
+            'status': 'success',
+            'data': {"total_matches_played": total_matches_played,
+                     "team1": {"times_won": times_1_won, "last": [match.to_json() for match in last_5_team1]},
+                     "team2": {"times_won": times_2_won, "last": [match.to_json() for match in last_5_team2]},
+                     "last_together": [match.to_json() for match in last_3_together]}
+        }
+        return jsonify(response_object), 200
+    except (ValueError, exc.DataError):
+        return jsonify(response_object), 404
+
+@matches_blueprint.route('/matches/recent/<team1>', methods=['GET'])
+def get_team_recent(team1):
+    response_object = {
+        'status': 'fail',
+        'message': 'Match does not exist'
+    }
+    try:
+        team_matches = Match.query.filter(or_(Match.home == team1, Match.away == team1))
+        previous_matches = team_matches.filter(func.date(Match.date) < date.today()).order_by(desc(Match.date)).limit(3).all()
+        upcoming_matches = team_matches.filter(func.date(Match.date) >= date.today()).order_by(asc(Match.date)).all()
+
+        response_object = {
+            'status': 'success',
+            'data': {"previous": [match.to_json() for match in previous_matches],
+                     "upcoming": [match.to_json() for match in upcoming_matches]}
+        }
+        return jsonify(response_object), 200
+    except (ValueError, exc.DataError):
+        return jsonify(response_object), 404
