@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Match overview</h1>
+    <h2>Info</h2>
+    Home: {{ home }} <br>
+    Away: {{ away }}<br>
+    Kickoff: {{ date }} {{ time }}<br>
+    Referee: {{ referee }}<br>
+
+    {% if stats %}
+        <h2>Stats</h2>
+        Total matches played against each other: {{ stats["total_matches_played"] }}.
+        Team {{ home }} has won {{ stats["team1"]["times_won"] }} of these, team {{ away }} has won
+        {{ stats["team2"]["times_won"] }} of these. <br>
+
+        Result last matches team {{ home }}: {{ results_1 }}
+        Result last matches team {{ away }}: {{ results_2 }}
+
+        Scores last matches togehter: <br>
+        <table class="table">
+            <thead>
+            <tr>
+                <th scope="col">Team {{ home }}</th>
+                <th scope="col">Team {{ away }}</th>
+                <th scope="col">Score team {{ home }}</th>
+                <th scope="col">Score team {{ away }}</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for match in stats["last_together"] %}
+                <tr>
+                    <th scope="row">{{ match["home"] }}</th>
+                    <td>{{ match["away"] }}</td>
+                    <td>{{ match["score_home"] }}</td>
+                    <td>{{ match["score_away"] }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+    {% endif %}
+
+    {% if weather %}
+        <h2>Weather</h2>
+        Temparature: {{ weather["temp"] }}
+        Humidity: {{ weather["hum"] }}
+        Description: {{ weather["report"] }}
+    {% endif %}
+{% endblock %}

@@ -80,9 +80,10 @@ def get_division_fixtures(division_id):
         if not division:
             return jsonify(response_object), 404
         else:
+            matches = Match.query.filter_by(division_id=division_id)
             response_object = {
                 'status': 'success',
-                'data': {'fixtures': [match.to_json() for match in division.matches]}
+                'data': {'fixtures': [match.to_json() for match in matches]}
             }
             return jsonify(response_object), 200
     except (ValueError, exc.DataError):

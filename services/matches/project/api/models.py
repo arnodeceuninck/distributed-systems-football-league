@@ -83,18 +83,30 @@ class Match(db.Model):
         if referee_id is not None:
             self.referee_id = referee_id
         if status_id is not None and status_id is not "NULL":
-            self.status_id = int(status_id)
+            try:
+                self.status_id = int(status_id)
+            except ValueError:
+                pass
         if goals_home is not None:
-            self.goals_home = int(goals_home)
+            try:
+                self.goals_home = int(goals_home)
+            except ValueError:
+                pass
         if goals_away is not None:
-            self.goals_away = int(goals_away)
+            try:
+                self.goals_away = int(goals_away)
+            except ValueError:
+                pass
         if id is not None:
-            self.id = int(id)
+            try:
+                self.id = int(id)
+            except ValueError:
+                pass
 
     def to_json(self):
         return {"id": self.id, "division": self.division_id, "matchweek": self.matchweek, "date": self.date.strftime("%Y-%m-%d"),
                 "time": self.time.strftime("%H:%M:%S"), "home": self.home, "away": self.away,
-                "status_id": self.status_id, "goals_home": self.goals_home, "goals_away": self.goals_away}
+                "status_id": self.status_id, "goals_home": self.goals_home, "goals_away": self.goals_away, "referee": self.referee_id}
 
 
 class Referee(db.Model):
