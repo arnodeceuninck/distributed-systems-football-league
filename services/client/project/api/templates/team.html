@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Team: {{ team["id"] }}</h1>
+    Club: {{ team["club_id"] }} <br>
+    Outfit colors: {{ team["outfit_colors"] }} <br>
+    Suffix: {{ team["suffix"] }} <br>
+
+    <h2>Scores last 3 games</h2>
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">Team {{ home }}</th>
+            <th scope="col">Team {{ away }}</th>
+            <th scope="col">Score team {{ home }}</th>
+            <th scope="col">Score team {{ away }}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for match in matches["previous"] %}
+            <tr>
+                <th scope="row">{{ match["home"] }}</th>
+                <td>{{ match["away"] }}</td>
+                <td>{{ match["score_home"] }}</td>
+                <td>{{ match["score_away"] }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Upcoming matches</h2>
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">id</th>
+            <th scope="col">matchweek</th>
+            <th scope="col">date</th>
+            <th scope="col">time</th>
+            <th scope="col">home</th>
+            <th scope="col">away</th>
+            <th scope="col">more info</th>
+        </tr>
+        </thead>
+        <tbody>
+        {#    {{ fixtures }}#}
+        {% for match in fixtures["fixtures"] %}
+            <tr>
+                <th scope="row">{{ match["id"] }}</th>
+                <td>{{ match["matchweek"] }}</td>
+                <td>{{ match["date"] }}</td>
+                <td>{{ match["time"] }}</td>
+                <td>{{ match["home"] }}</td>
+                <td>{{ match["away"] }}</td>
+                <td><a href="{{ url_for('divisions.fixture_detail', fixture_number=match["id"]) }}">More info</a></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

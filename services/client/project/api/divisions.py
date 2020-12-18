@@ -15,6 +15,29 @@ def division_overview():
     x = requests.get(f'{get_container("matches")}/divisions')
     return render_template("divisions.html", divisions=x.json()["data"])
 
+@divisions_blueprint.route('/team_admin', methods=['GET'])
+def team_admin():
+    team = request.cookies.get("team")
+    # if request.post:
+    #     # TODO (ook ni zeker of die .post juist is)
+    #     pass
+    if team:
+        x = requests.get(f'{get_container("matches")}/home/{team}').json()["data"]
+    else:
+        return render_template("no_permission.html")
+    return render_template("divisions.html", matches=x)
+
+@divisions_blueprint.route('/teams', methods=['GET'])
+def teams_overview():
+    x = requests.get(f'{get_container("clubs")}/teams')
+    return render_template("teams.html", divisions=x.json()["data"])
+
+@divisions_blueprint.route('/teams/<team_id>', methods=['GET'])
+def specific_team(team_id):
+    x = requests.get(f'{get_container("clubs")}/teams/{team_id}').json()["data"]
+    matches = requests.get(f'{get_container("matches")}/recent/{team_id}').json()["data"]
+    return render_template("team.html", team=x, matches=matches)
+
 @divisions_blueprint.route('/divisions/<division_id>', methods=['GET'])
 def specific_division(division_id):
     x = requests.get(f'{get_container("matches")}/divisions/{division_id}')

@@ -125,3 +125,20 @@ def get_team_recent(team1):
         return jsonify(response_object), 200
     except (ValueError, exc.DataError):
         return jsonify(response_object), 404
+
+@matches_blueprint.route('/matches/home/<team1>', methods=['GET'])
+def get_home(team1):
+    response_object = {
+        'status': 'fail',
+        'message': 'Match does not exist'
+    }
+    try:
+        team_matches = Match.query.filter(Match.home == team1).all()
+
+        response_object = {
+            'status': 'success',
+            'data': {[match.to_json() for match in team_matches]}
+        }
+        return jsonify(response_object), 200
+    except (ValueError, exc.DataError):
+        return jsonify(response_object), 404
