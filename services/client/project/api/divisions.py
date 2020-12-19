@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request, render_template, flash, make_response, redirect
 from project.api.containers import get_container
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta,date
 
 divisions_blueprint = Blueprint('divisions', __name__, template_folder='./templates')
 
@@ -55,11 +55,11 @@ def team_admin():
             flash(f"Something went wrong ({x.status_code})")
     if team:
         x = requests.get(f'{get_container("matches")}/matches/home/{team}')
-        club = request.get(f'{get_container("clubs")}/teams/{team}').json()["data"]["club_id"]
-        club_info = request.get(f'{get_container("clubs")}/clubs/{club}')
+        club = requests.get(f'{get_container("clubs")}/teams/{team}').json()["data"]["club_id"]
+        club_info = requests.get(f'{get_container("clubs")}/clubs/{club}').json()["data"]
         # return jsonify(x.status_code)
         x = x.json()["data"]
-        return render_template("team_admin.html", matches=x, obj=club)
+        return render_template("team_admin.html", matches=x, obj=club_info)
     else:
         return render_template("no_permission.html")
 
@@ -113,7 +113,7 @@ def fixture_detail(fixture_number):
     x = requests.get(f'{get_container("matches")}/matches/{fixture_number}').json()["data"]
     home = x["home"]
     away = x["away"]
-    date = x["date"]
+    date_ = x["date"]
     time = x["time"]
     referee = x["referee_id"]
 
@@ -121,8 +121,8 @@ def fixture_detail(fixture_number):
     weather = None
     results_1 = None
     results_2 = None
-    match_date = datetime.strptime(date, "%Y-%m-%d")
-    if match_date >= date.now().date():
+    match_date = datetime.strptime(date_, "%Y-%m-%d")
+    if match_date.date() >= datetime.now().date():
         stats = requests.get(f'/matches/stats/{home}/vs/{away}').json()["data"]
 
         results_1 = ""
@@ -160,13 +160,13 @@ def fixture_detail(fixture_number):
                     results_2 += "W"
 
 
-        if match_date < datetime.now().date() + timedelta(days=7):
+        if match_date.date() < datetime.now().date() + timedelta(days=7):
             # find the city
             stamnr = requests.get(f'{get_container("clubs")}/teams/{home}').json()["data"]["club_id"]
             city = requests.get(f'{get_container("clubs")}/clubs/{stamnr}').json()["data"]["city"]
             weather = get_weather(city, match_date)
 
-    return render_template("match.html", home=home, away=away, date=date, time=time, referee=referee, stats=stats, results_1=results_1, results_2=results_2, weather=weather)
+    return render_template("match.html", home=home, away=away, date=date_, time=time, referee=referee, stats=stats, results_1=results_1, results_2=results_2, weather=weather)
 
 @divisions_blueprint.route('/admin/matches', methods=['GET', 'POST'])
 def admin_matches():
