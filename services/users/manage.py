@@ -27,7 +27,7 @@ def seed_db():
     db.session.add(User(username="admin", type="admin"))
     db.session.add(User(username="superadmin", type="superadmin"))
 
-    for i in range(1, 50):
+    for i in range(1, 100):
         db.session.add(User(username=f"user{i}", team_id=i))
 
     db.session.commit()

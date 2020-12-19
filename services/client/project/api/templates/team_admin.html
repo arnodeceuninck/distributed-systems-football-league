@@ -2,7 +2,38 @@
 
 {% block content %}
     <h1>Home matches</h1>
-    <h2>Stats</h2>
+    <h2>Update club info</h2>
+    <table class="table">
+    <tr>
+        {% for attr in obj %}
+            <td>{{ attr }}</td>
+        {% endfor %}
+    </tr>
+
+    <tr>
+        <form class="form-inline" method="post">
+            {% for attr in obj %}
+                <td><input class="form-control mr-sm-2" stam_number="{{ attr }}" name="{{ attr }}" type="search"
+                           value="{{ obj[attr] }}" aria-label="Search"></td>
+
+            {% endfor %}
+            <td>
+                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Update</button>
+            </td>
+
+        </form>
+        <form class="form-inline" method="post">
+            <td>
+                <input type="hidden" name="delete" value="yes"/>
+                <input type="hidden" name="stam_number" value="{{ obj["stam_number"] }}"/>
+                <button class="btn btn-outline-danger my-2 my-sm-0" type="submit">Delete</button>
+            </td>
+        </form>
+        </form>
+    </tr>
+    </table>
+
+    <h2>Add scores</h2>
     <table class="table">
         <thead>
         <tr>
@@ -25,24 +56,28 @@
         {#    {{ fixtures }}#}
         {% for match in matches %}
 
-    <form class="form-inline" method="post">
-    <input type="hidden" name="id" value="{{ match["id"] }}" />
-            <tr>
-                <th scope="row">{{ match["id"] }}</th>
-                <td>{{ match["matchweek"] }}</td>
-                <td>{{ match["date"] }}</td>
-                <td>{{ match["time"] }}</td>
-                <td>{{ match["home"] }}</td>
-                <td>{{ match["away"] }}</td>
-                <td>{{ match["status_id"] }}</td>
-                <td>
-        <input class="form-control mr-sm-2" id="goals_home" name="goals_home" type="search" placeholder="{{ match["goals_home"]}}" aria-label="Search"></td>
-                <td>
-        <input class="form-control mr-sm-2" id="goals_away" name="goals_away" type="search" placeholder="{{ match["goals_away"] }}" aria-label="Search"></td>
-                <td>
-        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Update</button></td>
-                <td><a href="{{ url_for('divisions.fixture_detail', fixture_number=match["id"]) }}">More info</a></td>
-            </tr>
+            <form class="form-inline" method="post">
+                <input type="hidden" name="id" value="{{ match["id"] }}"/>
+                <tr>
+                    <th scope="row">{{ match["id"] }}</th>
+                    <td>{{ match["matchweek"] }}</td>
+                    <td>{{ match["date"] }}</td>
+                    <td>{{ match["time"] }}</td>
+                    <td>{{ match["home"] }}</td>
+                    <td>{{ match["away"] }}</td>
+                    <td>{{ match["status_id"] }}</td>
+                    <td>
+                        <input class="form-control mr-sm-2" id="goals_home" name="goals_home" type="search"
+                               placeholder="{{ match["goals_home"] }}" aria-label="Search"></td>
+                    <td>
+                        <input class="form-control mr-sm-2" id="goals_away" name="goals_away" type="search"
+                               placeholder="{{ match["goals_away"] }}" aria-label="Search"></td>
+                    <td>
+                        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Update</button>
+                    </td>
+                    <td><a href="{{ url_for('divisions.fixture_detail', fixture_number=match["id"]) }}">More info</a>
+                    </td>
+                </tr>
             </form>
         {% endfor %}
         </tbody>

@@ -47,6 +47,7 @@ def team_admin():
         return render_template("no_permission.html")
     team = request.cookies.get("team")
     if request.method == 'POST':
+        # TODO update club info
         x = requests.put(f'{get_container("matches")}/matches/{request.form.get("id")}', data={"goals_home": request.form.get("goals_home"), "goals_away": request.form.get("goals_away")})
         if x.status_code == 200:
             flash("Score updated succesfuly")
@@ -54,9 +55,11 @@ def team_admin():
             flash(f"Something went wrong ({x.status_code})")
     if team:
         x = requests.get(f'{get_container("matches")}/matches/home/{team}')
+        club = request.get(f'{get_container("clubs")}/teams/{team}').json()["data"]["club_id"]
+        club_info = request.get(f'{get_container("clubs")}/clubs/{club}')
         # return jsonify(x.status_code)
         x = x.json()["data"]
-        return render_template("team_admin.html", matches=x)
+        return render_template("team_admin.html", matches=x, obj=club)
     else:
         return render_template("no_permission.html")
 
