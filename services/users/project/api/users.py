@@ -14,7 +14,7 @@ def ping_pong():
 
 @users_blueprint.route('/users', methods=['POST'])
 def add_user():
-    post_data = request.get_json()
+    post_data = request.form
     response_object = {
         'status': 'fail',
         'message': 'Invalid payload.'
@@ -22,19 +22,21 @@ def add_user():
     if not post_data:
         return jsonify(response_object), 400
     username = post_data.get('username')
-    email = post_data.get('email')
+    password = post_data.get('password')
+    team_id = post_data.get('team_id')
+    type = post_data.get('type')
     try:
-        user = User.query.filter_by(email=email).first()
+        user = User.query.filter_by(username=username).first()
         if not user:
-            db.session.add(User(username=username, email=email))
+            db.session.add(User(username=username, password=password, team_id=team_id, type=type))
             db.session.commit()
             response_object = {
                 'status': 'success',
-                'message': f'{email} was added!'
+                'message': f'{username} was added!'
             }
             return jsonify(response_object), 201
         else:
-            response_object['message'] = 'Sorry. That email already exists.'
+            response_object['message'] = 'Sorry. That username already exists.'
             return jsonify(response_object), 400
     except exc.IntegrityError as e:
         db.session.rollback()
@@ -60,6 +62,34 @@ def get_single_user(user_id):
     except (ValueError, exc.DataError):
         return jsonify(response_object), 404
 
+@users_blueprint.route('/users/authenticate', methods=['POST'])
+def authenticate():
+    post_data = request.form
+    response_object = {
+        'status': 'fail',
+        'message': 'Invalid payload.'
+    }
+    if not post_data:
+        return jsonify(response_object), 400
+    username = post_data.get('username')
+    password = post_data.get('password')
+    try:
+        user = User.query.filter_by(username=username).first()
+        if not user:
+            return jsonify(response_object), 404
+        else:
+            if user.password == password:
+                response_object = {
+                    'status': 'success',
+                    'data': user.to_json()
+                }
+                return jsonify(response_object), 200
+            else:
+                return jsonify("Wrong password"), 400
+    except (ValueError, exc.DataError) as e:
+        raise e
+        return jsonify(response_object), 404
+
 @users_blueprint.route('/users', methods=['GET'])
 def get_all_users():
     """Get all users"""
@@ -69,12 +99,49 @@ def get_all_users():
     }
     return jsonify(response_object), 200
 
-@users_blueprint.route('/', methods=['GET'])
-def index():
-    if request.method == 'POST':
-        username = request.form['username']
-        email = request.form['email']
-        db.session.add(User(username=username, email=email))
+# @users_blueprint.route('/', methods=['GET'])
+# def index():
+#     if request.method == 'POST':
+#         username = request.form['username']
+#         email = request.form['email']
+#         db.session.add(User(username=username, email=email))
+#         db.session.commit()
+#     users = User.query.all()
+#     return render_template('index.html', users=users)
+
+@users_blueprint.route('/users/<obj_id>', methods=['PUT'])
+def update_obj(obj_id):
+    response_object = {
+        'status': 'fail',
+        'message': 'Object does not exist'
+    }
+    try:
+        obj = User.query.get(obj_id)
+        if not obj:
+            return jsonify(response_object), 404
+        else:
+            obj.update(request.form)
+            db.session.commit()
+            response_object = {
+                'status': 'success'
+            }
+            return jsonify(response_object), 200
+    except (ValueError, exc.DataError):
+        return jsonify(response_object), 404
+
+
+@users_blueprint.route('/users/<obj_id>', methods=['DELETE'])
+def delete_obj(obj_id):
+    response_object = {
+        'status': 'fail',
+        'message': 'Object does not exist'
+    }
+    try:
+        User.query.filter_by(id=obj_id).delete()
         db.session.commit()
-    users = User.query.all()
-    return render_template('index.html', users=users)
+        response_object = {
+            'status': 'success'
+        }
+        return jsonify(response_object), 200
+    except (ValueError, exc.DataError):
+        return jsonify(response_object), 404

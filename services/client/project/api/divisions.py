@@ -22,10 +22,16 @@ def division_overview():
 @divisions_blueprint.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        resp = make_response(redirect('/divisions'))
-        resp.set_cookie('team', '3')
-        resp.set_cookie('user_type', 'user') # user, admin, super
-        return resp
+        x = requests.post(f'{get_container("users")}/users/authenticate', data=request.form)
+        if x.status_code == 200:
+            user = x.json()['data']
+            resp = make_response(redirect('/divisions'))
+            resp.set_cookie('team', str(user["team_id"]))
+            resp.set_cookie('user_type', str(user["type"]))
+            flash("Login succesful")
+            return resp
+        else:
+            flash("Invalid credentials")
     return render_template("login.html")
 
 @divisions_blueprint.route('/logout', methods=['GET', 'POST'])
@@ -37,6 +43,8 @@ def logout():
 
 @divisions_blueprint.route('/team_admin', methods=['GET', 'POST'])
 def team_admin():
+    if request.cookies.get("user_type") not in ["user", "admin", "superadmin"]:
+        return render_template("no_permission.html")
     team = request.cookies.get("team")
     if request.method == 'POST':
         x = requests.put(f'{get_container("matches")}/matches/{request.form.get("id")}', data={"goals_home": request.form.get("goals_home"), "goals_away": request.form.get("goals_away")})
@@ -159,6 +167,8 @@ def fixture_detail(fixture_number):
 
 @divisions_blueprint.route('/admin/matches', methods=['GET', 'POST'])
 def admin_matches():
+    if request.cookies.get("user_type") not in ["admin", "superadmin"]:
+        return render_template("no_permission.html")
     team = request.cookies.get("team")
     if request.method == 'POST':
         if request.form.get("delete") == "yes":
@@ -192,6 +202,8 @@ def admin_matches():
 
 @divisions_blueprint.route('/admin/divisions', methods=['GET', 'POST'])
 def admin_divisions():
+    if request.cookies.get("user_type") not in ["admin", "superadmin"]:
+        return render_template("no_permission.html")
     team = request.cookies.get("team")
     if request.method == 'POST':
         if request.form.get("delete") == "yes":
@@ -225,6 +237,8 @@ def admin_divisions():
 
 @divisions_blueprint.route('/admin/referees', methods=['GET', 'POST'])
 def admin_referees():
+    if request.cookies.get("user_type") not in ["admin", "superadmin"]:
+        return render_template("no_permission.html")
     team = request.cookies.get("team")
     if request.method == 'POST':
         if request.form.get("delete") == "yes":
@@ -258,6 +272,8 @@ def admin_referees():
 
 @divisions_blueprint.route('/admin/clubs', methods=['GET', 'POST'])
 def admin_clubs():
+    if request.cookies.get("user_type") not in ["admin", "superadmin"]:
+        return render_template("no_permission.html")
     team = request.cookies.get("team")
     if request.method == 'POST':
         if request.form.get("delete") == "yes":
@@ -291,6 +307,8 @@ def admin_clubs():
 
 @divisions_blueprint.route('/admin/teams', methods=['GET', 'POST'])
 def admin_teams():
+    if request.cookies.get("user_type") not in ["admin", "superadmin"]:
+        return render_template("no_permission.html")
     team = request.cookies.get("team")
     if request.method == 'POST':
         if request.form.get("delete") == "yes":
@@ -319,5 +337,40 @@ def admin_teams():
         # return jsonify(x.json())
         x = x.json()["data"]
         return render_template("admin_teams.html", objects=x, obj_attr=["club_id"])
+    else:
+        return render_template("no_permission.html")
+
+@divisions_blueprint.route('/admin/users', methods=['GET', 'POST'])
+def admin_users():
+    if request.cookies.get("user_type") not in ["admin", "superadmin"]:
+        return render_template("no_permission.html")
+    team = request.cookies.get("team")
+    if request.method == 'POST':
+        if request.form.get("delete") == "yes":
+            x = requests.delete(f'{get_container("users")}/users/{request.form.get("id")}')
+            if x.status_code == 200:
+                flash("Deleted succesfuly")
+            else:
+                flash(f"Something went wrong ({x.status_code})")
+        elif request.form.get("add") == "yes":
+            values = request.form.to_dict()
+            del values["add"]
+            x = requests.post(f'{get_container("users")}/users', data=values)
+            if x.status_code == 201:
+                flash("Added succesfuly")
+            else:
+                flash(f"Something went wrong ({x.status_code})")
+        else:
+            # return jsonify(request.form)
+            x = requests.put(f'{get_container("clubs")}/teams/{request.form.get("id")}', data=request.form)
+            if x.status_code == 200:
+                flash("Updated succesfuly")
+            else:
+                flash(f"Something went wrong ({x.status_code})")
+    if team:
+        x = requests.get(f'{get_container("users")}/users')
+        # return jsonify(x.json())
+        x = x.json()["data"]
+        return render_template("admin_users.html", objects=x, obj_attr=["username"], superadmin=request.cookies.get("user_type")=="superadmin")
     else:
         return render_template("no_permission.html")
