@@ -15,7 +15,7 @@ def pint_pong():
 
 @clubs_blueprint.route('/clubs', methods=['POST'])
 def add_club():
-    post_data = request.get_json()
+    post_data = request.form
     response_object = {
         'status': 'fail',
         'message': 'Invalid payload.'
@@ -95,4 +95,39 @@ def get_all_clubs():
     }
     return jsonify(response_object), 200
 
+@clubs_blueprint.route('/clubs/<obj_id>', methods=['PUT'])
+def update_obj(obj_id):
+    response_object = {
+        'status': 'fail',
+        'message': 'Object does not exist'
+    }
+    try:
+        obj = Club.query.get(obj_id)
+        if not obj:
+            return jsonify(response_object), 404
+        else:
+            obj.update(request.form)
+            db.session.commit()
+            response_object = {
+                'status': 'success'
+            }
+            return jsonify(response_object), 200
+    except (ValueError, exc.DataError):
+        return jsonify(response_object), 404
 
+
+@clubs_blueprint.route('/clubs/<obj_id>', methods=['DELETE'])
+def delete_obj(obj_id):
+    response_object = {
+        'status': 'fail',
+        'message': 'Object does not exist'
+    }
+    try:
+        Club.query.filter_by(stam_number=obj_id).delete()
+        db.session.commit()
+        response_object = {
+            'status': 'success'
+        }
+        return jsonify(response_object), 200
+    except (ValueError, exc.DataError):
+        return jsonify(response_object), 404

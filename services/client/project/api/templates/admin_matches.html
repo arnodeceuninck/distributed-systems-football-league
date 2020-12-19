@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Matches</h1>
+    <h2>New</h2>
+    Enter the required info here. The other info can be added later from the edit table below.
+
+    <table class="table">
+        <tbody>
+{#        <tr>#}
+{#                {% for attr in obj_attr %}#}
+{#                    <td>{{ attr }}</td>#}
+{#                {% endfor %}#}
+{#            </tr>#}
+
+            <tr>
+                <form class="form-inline" method="post">
+                    <input type="hidden" name="add" value="yes"/>
+                    {% for attr in obj_attr %}
+                        <td><input class="form-control mr-sm-2" id="{{ attr }}" name="{{ attr }}" type="search"
+                                   placeholder="{{ attr }}" aria-label="Search"></td>
+
+                    {% endfor %}
+                    <td>
+                        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Add</button>
+                    </td>
+
+                </form>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Edit</h2>
+    <table class="table">
+        <tbody>
+
+        {#    {{ fixtures }}#}
+        {% for match in matches["matches"] %}
+
+            <tr>
+                {% for attr in match %}
+                    <td>{{ attr }}</td>
+                {% endfor %}
+            </tr>
+
+            <tr>
+                <form class="form-inline" method="post">
+                    {% for attr in match %}
+                        <td><input class="form-control mr-sm-2" id="{{ attr }}" name="{{ attr }}" type="search"
+                                   value="{{ match[attr] }}" aria-label="Search"></td>
+
+                    {% endfor %}
+                    <td>
+                        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Update</button>
+                    </td>
+
+                </form>
+                <form class="form-inline" method="post">
+                    <td>
+                        <input type="hidden" name="delete" value="yes"/>
+                        <input type="hidden" name="id" value="{{ match["id"] }}"/>
+                        <button class="btn btn-outline-danger my-2 my-sm-0" type="submit">Delete</button>
+                    </td>
+                </form>
+                </form>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

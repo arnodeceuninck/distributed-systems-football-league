@@ -3,6 +3,7 @@ from sqlalchemy.sql import func
 from project import db
 import enum
 from sqlalchemy import func
+import sys
 
 
 class Division(db.Model):
@@ -40,6 +41,16 @@ class Division(db.Model):
                 table[match.home]["loses"] += 1
                 table[match.away]["score"] += 3
         return table
+
+    def update(self, data):
+        for key in data:
+            try:
+                value = data[key]
+                if value == "None":
+                    value = None
+                setattr(self, key, value)
+            except AttributeError:
+                print(f"Warning:{key}, {data[key]} couldn't be added", file=sys.stderr)
 
 class MatchStatus(db.Model):
     __tablename__ = "matchstatus"
@@ -104,10 +115,19 @@ class Match(db.Model):
                 pass
 
     def to_json(self):
-        return {"id": self.id, "division": self.division_id, "matchweek": self.matchweek, "date": self.date.strftime("%Y-%m-%d"),
+        return {"id": self.id, "division_id": self.division_id, "matchweek": self.matchweek, "date": self.date.strftime("%Y-%m-%d"),
                 "time": self.time.strftime("%H:%M:%S"), "home": self.home, "away": self.away,
-                "status_id": self.status_id, "goals_home": self.goals_home, "goals_away": self.goals_away, "referee": self.referee_id}
+                "status_id": self.status_id, "goals_home": self.goals_home, "goals_away": self.goals_away, "referee_id": self.referee_id}
 
+    def update(self, data):
+        for key in data:
+            try:
+                value = data[key]
+                if value == "None":
+                    value = None
+                setattr(self, key, value)
+            except AttributeError:
+                print(f"Warning:{key}, {data[key]} couldn't be added", file=sys.stderr)
 
 class Referee(db.Model):
     __tablename__ = "referee"
@@ -143,3 +163,13 @@ class Referee(db.Model):
     def to_json(self):
         return {"id": self.id, "firstname": self.firstname, "lastname": self.lastname, "address": self.address,
                 "zip": self.zip, "city": self.city, "phone": self.phone, "email": self.email, "birthday": self.birthday}
+
+    def update(self, data):
+        for key in data:
+            try:
+                value = data[key]
+                if value == "None":
+                    value = None
+                setattr(self, key, value)
+            except AttributeError:
+                print(f"Warning:{key}, {data[key]} couldn't be added", file=sys.stderr)

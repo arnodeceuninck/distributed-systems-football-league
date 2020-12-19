@@ -17,12 +17,13 @@ def pint_pong():
 
 @divisions_blueprint.route('/divisions', methods=['POST'])
 def add_division():
-    post_data = request.get_json()
+    post_data = request.form
     response_object = {
         'status': 'fail',
         'message': 'Invalid payload.'
     }
     if not post_data:
+        raise AttributeError()
         return jsonify(response_object), 400
     name = post_data.get("name")
     try:
@@ -174,5 +175,42 @@ def get_division_stats(division_id):
                          "most_clean_sheets": most_clean_sheets}
             }
             return jsonify(response_object), 200
+    except (ValueError, exc.DataError):
+        return jsonify(response_object), 404
+
+@divisions_blueprint.route('/divisions/<obj_id>', methods=['PUT'])
+def update_match(obj_id):
+    response_object = {
+        'status': 'fail',
+        'message': 'Object does not exist'
+    }
+    try:
+        obj = Division.query.get(obj_id)
+        if not obj:
+            return jsonify(response_object), 404
+        else:
+            obj.update(request.form)
+            db.session.commit()
+            response_object = {
+                'status': 'success'
+            }
+            return jsonify(response_object), 200
+    except (ValueError, exc.DataError):
+        return jsonify(response_object), 404
+
+
+@divisions_blueprint.route('/divisions/<obj_id>', methods=['DELETE'])
+def delete_obj(obj_id):
+    response_object = {
+        'status': 'fail',
+        'message': 'Object does not exist'
+    }
+    try:
+        Division.query.filter_by(id=obj_id).delete()
+        db.session.commit()
+        response_object = {
+            'status': 'success'
+        }
+        return jsonify(response_object), 200
     except (ValueError, exc.DataError):
         return jsonify(response_object), 404

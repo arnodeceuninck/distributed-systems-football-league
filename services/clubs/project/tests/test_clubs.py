@@ -119,7 +119,7 @@ class TestClubService(BaseTestCase):
             data = json.loads(response.data.decode())
             self.assertEqual(response.status_code, 200)
             self.assertEqual(234, int(data['data']['stam_number']))
-            self.assertIn("De voetballers", data['data']['naam'])
+            self.assertIn("De voetballers", data['data']['name'])
             self.assertIn("Heystraat 32", data['data']['address'])
             self.assertEqual(4233, int(data['data']['zip']))
             self.assertIn("Antwerpen", data['data']['city'])
@@ -143,9 +143,9 @@ class TestClubService(BaseTestCase):
             data = json.loads(response.data.decode())
             self.assertEqual(response.status_code, 200)
             self.assertEqual(234, int(data['data']['clubs'][0]['stam_number']))
-            self.assertIn("De voetballers", data['data']['clubs'][0]['naam'])
+            self.assertIn("De voetballers", data['data']['clubs'][0]['name'])
             self.assertEqual(235, int(data['data']['clubs'][1]['stam_number']))
-            self.assertIn("De balvoeters", data['data']['clubs'][1]['naam'])
+            self.assertIn("De balvoeters", data['data']['clubs'][1]['name'])
 
     def test_all_teams_from_club(self):
         """Ensure get single team behaves correctly."""

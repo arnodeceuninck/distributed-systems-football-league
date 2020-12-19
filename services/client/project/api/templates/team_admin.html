@@ -23,7 +23,7 @@
         <tbody>
 
         {#    {{ fixtures }}#}
-        {% for match in matches["matches"] %}
+        {% for match in matches %}
 
     <form class="form-inline" method="post">
     <input type="hidden" name="id" value="{{ match["id"] }}" />
@@ -36,9 +36,9 @@
                 <td>{{ match["away"] }}</td>
                 <td>{{ match["status_id"] }}</td>
                 <td>
-        <input class="form-control mr-sm-2" id="home" name="home" type="search" placeholder="{{ match["goals_home"]}}" aria-label="Search"></td>
+        <input class="form-control mr-sm-2" id="goals_home" name="goals_home" type="search" placeholder="{{ match["goals_home"]}}" aria-label="Search"></td>
                 <td>
-        <input class="form-control mr-sm-2" id="away" name="away" type="search" placeholder="{{ match["goals_away"] }}" aria-label="Search"></td>
+        <input class="form-control mr-sm-2" id="goals_away" name="goals_away" type="search" placeholder="{{ match["goals_away"] }}" aria-label="Search"></td>
                 <td>
         <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Update</button></td>
                 <td><a href="{{ url_for('divisions.fixture_detail', fixture_number=match["id"]) }}">More info</a></td>

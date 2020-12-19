@@ -14,14 +14,14 @@ def pint_pong():
 
 @teams_blueprint.route('/teams', methods=['POST'])
 def add_team():
-    post_data = request.get_json()
+    post_data = request.form
     response_object = {
         'status': 'fail',
         'message': 'Invalid payload.'
     }
     if not post_data:
         return jsonify(response_object), 400
-    stam_number = post_data.get("stam_number")
+    stam_number = post_data.get("club_id")
     outfit_colors = post_data.get("outfit_colors")
     suffix = post_data.get("suffix")
     try:
@@ -34,6 +34,7 @@ def add_team():
         }
         return jsonify(response_object), 201
     except exc.IntegrityError as e:
+        raise e
         db.session.rollback()
         return jsonify(response_object), 400
 
@@ -66,4 +67,40 @@ def get_all_teams():
     }
     return jsonify(response_object), 200
 
+@teams_blueprint.route('/teams/<obj_id>', methods=['PUT'])
+def update_obj(obj_id):
+    response_object = {
+        'status': 'fail',
+        'message': 'Object does not exist'
+    }
+    try:
+        obj = Team.query.get(obj_id)
+        if not obj:
+            return jsonify(response_object), 404
+        else:
+            obj.update(request.form)
+            db.session.commit()
+            response_object = {
+                'status': 'success'
+            }
+            return jsonify(response_object), 200
+    except (ValueError, exc.DataError):
+        return jsonify(response_object), 404
+
+
+@teams_blueprint.route('/teams/<obj_id>', methods=['DELETE'])
+def delete_obj(obj_id):
+    response_object = {
+        'status': 'fail',
+        'message': 'Object does not exist'
+    }
+    try:
+        Club.query.filter_by(id=obj_id).delete()
+        db.session.commit()
+        response_object = {
+            'status': 'success'
+        }
+        return jsonify(response_object), 200
+    except (ValueError, exc.DataError):
+        return jsonify(response_object), 404
 

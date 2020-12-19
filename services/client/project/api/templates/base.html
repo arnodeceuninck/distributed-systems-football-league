@@ -19,6 +19,60 @@
           integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 </head>
 <body>
+
+<!--Navbar-->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <a class="navbar-brand" href="#">Navbar</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNavDropdown">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="/login">Login</a>
+      </li>
+        <li class="nav-item">
+        <a class="nav-link" href="/logout">Logout</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/divisions">division</a>
+      </li>
+        <li class="nav-item">
+        <a class="nav-link" href="/team_admin">Team Admin</a>
+      </li>
+        <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Admin
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+
+          <a class="dropdown-item" href="/admin/users">Users</a>
+          <a class="dropdown-item" href="/admin/referees">Referees</a>
+          <a class="dropdown-item" href="/admin/divisions">Divisions</a>
+          <a class="dropdown-item" href="/admin/teams">Teams</a>
+          <a class="dropdown-item" href="/admin/clubs">Clubs</a>
+          <a class="dropdown-item" href="/admin/matches">Matches</a>
+        </div>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+
+<!--Flask messages-->
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-dismissible fade show" role="alert">
+                <span>{{ message }}</span>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">×</span>
+                </button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
 {% block content %}
 {% endblock %}
 </body>

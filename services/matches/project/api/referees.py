@@ -17,7 +17,7 @@ def pint_pong():
 
 @referees_blueprint.route('/referees', methods=['POST'])
 def add_referee():
-    post_data = request.get_json()
+    post_data = request.form
     response_object = {
         'status': 'fail',
         'message': 'Invalid payload.'
@@ -73,3 +73,41 @@ def get_all_referees():
         'data': {'referees': [referee.to_json() for referee in Referee.query.all()]}
     }
     return jsonify(response_object), 200
+
+
+@referees_blueprint.route('/referees/<obj_id>', methods=['PUT'])
+def update_obj(obj_id):
+    response_object = {
+        'status': 'fail',
+        'message': 'Object does not exist'
+    }
+    try:
+        obj = Referee.query.get(obj_id)
+        if not obj:
+            return jsonify(response_object), 404
+        else:
+            obj.update(request.form)
+            db.session.commit()
+            response_object = {
+                'status': 'success'
+            }
+            return jsonify(response_object), 200
+    except (ValueError, exc.DataError):
+        return jsonify(response_object), 404
+
+
+@referees_blueprint.route('/referees/<obj_id>', methods=['DELETE'])
+def delete_obj(obj_id):
+    response_object = {
+        'status': 'fail',
+        'message': 'Object does not exist'
+    }
+    try:
+        Referee.query.filter_by(id=obj_id).delete()
+        db.session.commit()
+        response_object = {
+            'status': 'success'
+        }
+        return jsonify(response_object), 200
+    except (ValueError, exc.DataError):
+        return jsonify(response_object), 404

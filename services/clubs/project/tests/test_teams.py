@@ -81,7 +81,7 @@ class TestClubService(BaseTestCase):
             response = self.client.post(
                 '/teams',
                 data=json.dumps({
-                    'stam_number': 234,
+                    'club_id': 234,
                     'outfit_colors': "Zwart/Oranje",
                     'suffix': "B"
                 }),
@@ -99,7 +99,7 @@ class TestClubService(BaseTestCase):
             response = self.client.post(
                 '/teams',
                 data=json.dumps({
-                    'stam_number': club.stam_number,
+                    'club_id': club.stam_number,
                     'outfit_colors': "Zwart/Oranje",
                     'suffix': "B"
                 }),
@@ -108,7 +108,7 @@ class TestClubService(BaseTestCase):
             response = self.client.post(
                 '/teams',
                 data=json.dumps({
-                    'stam_number': club.stam_number,
+                    'club_id': club.stam_number,
                     'outfit_colors': "Okergeel/Bordeauxrood",
                     'suffix': "A"
                 }),

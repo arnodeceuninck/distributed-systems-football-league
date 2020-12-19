@@ -17,7 +17,7 @@ def pint_pong():
 
 @matches_blueprint.route('/matches', methods=['POST'])
 def add_match():
-    post_data = request.get_json()
+    post_data = request.form
     response_object = {
         'status': 'fail',
         'message': 'Invalid payload.'
@@ -64,6 +64,43 @@ def get_single_match(match_id):
                 'data': match.to_json()
             }
             return jsonify(response_object), 200
+    except (ValueError, exc.DataError):
+        return jsonify(response_object), 404
+
+@matches_blueprint.route('/matches/<match_id>', methods=['PUT'])
+def update_match(match_id):
+    response_object = {
+        'status': 'fail',
+        'message': 'Object does not exist'
+    }
+    try:
+        obj = Match.query.get(match_id)
+        if not obj:
+            return jsonify(response_object), 404
+        else:
+            obj.update(request.form)
+            db.session.commit()
+            response_object = {
+                'status': 'success'
+            }
+            return jsonify(response_object), 200
+    except (ValueError, exc.DataError):
+        return jsonify(response_object), 404
+
+
+@matches_blueprint.route('/matches/<match_id>', methods=['DELETE'])
+def delete_match(match_id):
+    response_object = {
+        'status': 'fail',
+        'message': 'Object does not exist'
+    }
+    try:
+        Match.query.filter_by(id=match_id).delete()
+        db.session.commit()
+        response_object = {
+            'status': 'success'
+        }
+        return jsonify(response_object), 200
     except (ValueError, exc.DataError):
         return jsonify(response_object), 404
 
@@ -137,8 +174,10 @@ def get_home(team1):
 
         response_object = {
             'status': 'success',
-            'data': {[match.to_json() for match in team_matches]}
+            'data': [match.to_json() for match in team_matches]
         }
         return jsonify(response_object), 200
     except (ValueError, exc.DataError):
         return jsonify(response_object), 404
+
+

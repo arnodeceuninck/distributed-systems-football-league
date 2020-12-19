@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, render_template
+from flask import Blueprint, jsonify, request, render_template, flash, make_response, redirect
 from project.api.containers import get_container
 import requests
 from datetime import datetime, timedelta
@@ -10,22 +10,47 @@ divisions_blueprint = Blueprint('divisions', __name__, template_folder='./templa
 def pint_pong():
     return render_template("pong.html")
 
+@divisions_blueprint.route('/', methods=['GET'])
+def home():
+    return redirect('/divisions')
+
 @divisions_blueprint.route('/divisions', methods=['GET'])
 def division_overview():
     x = requests.get(f'{get_container("matches")}/divisions')
     return render_template("divisions.html", divisions=x.json()["data"])
 
-@divisions_blueprint.route('/team_admin', methods=['GET'])
+@divisions_blueprint.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        resp = make_response(redirect('/divisions'))
+        resp.set_cookie('team', '3')
+        resp.set_cookie('user_type', 'user') # user, admin, super
+        return resp
+    return render_template("login.html")
+
+@divisions_blueprint.route('/logout', methods=['GET', 'POST'])
+def logout():
+    resp = make_response(redirect('/divisions'))
+    resp.set_cookie("team", '', expires=0)
+    resp.set_cookie("user_type", '', expires=0)
+    return resp
+
+@divisions_blueprint.route('/team_admin', methods=['GET', 'POST'])
 def team_admin():
     team = request.cookies.get("team")
-    # if request.post:
-    #     # TODO (ook ni zeker of die .post juist is)
-    #     pass
+    if request.method == 'POST':
+        x = requests.put(f'{get_container("matches")}/matches/{request.form.get("id")}', data={"goals_home": request.form.get("goals_home"), "goals_away": request.form.get("goals_away")})
+        if x.status_code == 200:
+            flash("Score updated succesfuly")
+        else:
+            flash(f"Something went wrong ({x.status_code})")
     if team:
-        x = requests.get(f'{get_container("matches")}/home/{team}').json()["data"]
+        x = requests.get(f'{get_container("matches")}/matches/home/{team}')
+        # return jsonify(x.status_code)
+        x = x.json()["data"]
+        return render_template("team_admin.html", matches=x)
     else:
         return render_template("no_permission.html")
-    return render_template("divisions.html", matches=x)
 
 @divisions_blueprint.route('/teams', methods=['GET'])
 def teams_overview():
@@ -79,7 +104,7 @@ def fixture_detail(fixture_number):
     away = x["away"]
     date = x["date"]
     time = x["time"]
-    referee = x["referee"]
+    referee = x["referee_id"]
 
     stats = None
     weather = None
@@ -131,3 +156,168 @@ def fixture_detail(fixture_number):
             weather = get_weather(city, match_date)
 
     return render_template("match.html", home=home, away=away, date=date, time=time, referee=referee, stats=stats, results_1=results_1, results_2=results_2, weather=weather)
+
+@divisions_blueprint.route('/admin/matches', methods=['GET', 'POST'])
+def admin_matches():
+    team = request.cookies.get("team")
+    if request.method == 'POST':
+        if request.form.get("delete") == "yes":
+            x = requests.delete(f'{get_container("matches")}/matches/{request.form.get("id")}')
+            if x.status_code == 200:
+                flash("Deleted succesfuly")
+            else:
+                flash(f"Something went wrong ({x.status_code})")
+        elif request.form.get("add") == "yes":
+            values = request.form.to_dict()
+            del values["add"]
+            x = requests.post(f'{get_container("matches")}/matches', data=values)
+            if x.status_code == 201:
+                flash("Added succesfuly")
+            else:
+                flash(f"Something went wrong ({x.status_code})")
+        else:
+            # return jsonify(request.form)
+            x = requests.put(f'{get_container("matches")}/matches/{request.form.get("id")}', data=request.form)
+            if x.status_code == 200:
+                flash("Updated succesfuly")
+            else:
+                flash(f"Something went wrong ({x.status_code})")
+    if team:
+        x = requests.get(f'{get_container("matches")}/matches')
+        # return jsonify(x.json())
+        x = x.json()["data"]
+        return render_template("admin_matches.html", matches=x, obj_attr=["division_id", "matchweek", "date", "time", "home", "away"])
+    else:
+        return render_template("no_permission.html")
+
+@divisions_blueprint.route('/admin/divisions', methods=['GET', 'POST'])
+def admin_divisions():
+    team = request.cookies.get("team")
+    if request.method == 'POST':
+        if request.form.get("delete") == "yes":
+            x = requests.delete(f'{get_container("matches")}/divisions/{request.form.get("id")}')
+            if x.status_code == 200:
+                flash("Deleted succesfuly")
+            else:
+                flash(f"Something went wrong ({x.status_code})")
+        elif request.form.get("add") == "yes":
+            values = request.form.to_dict()
+            del values["add"]
+            x = requests.post(f'{get_container("matches")}/divisions', data=values)
+            if x.status_code == 201:
+                flash("Added succesfuly")
+            else:
+                flash(f"Something went wrong ({x.status_code})")
+        else:
+            # return jsonify(request.form)
+            x = requests.put(f'{get_container("matches")}/divisions/{request.form.get("id")}', data=request.form)
+            if x.status_code == 200:
+                flash("Updated succesfuly")
+            else:
+                flash(f"Something went wrong ({x.status_code})")
+    if team:
+        x = requests.get(f'{get_container("matches")}/divisions')
+        # return jsonify(x.json())
+        x = x.json()["data"]
+        return render_template("admin_divisions.html", objects=x, obj_attr=["name"])
+    else:
+        return render_template("no_permission.html")
+
+@divisions_blueprint.route('/admin/referees', methods=['GET', 'POST'])
+def admin_referees():
+    team = request.cookies.get("team")
+    if request.method == 'POST':
+        if request.form.get("delete") == "yes":
+            x = requests.delete(f'{get_container("matches")}/referees/{request.form.get("id")}')
+            if x.status_code == 200:
+                flash("Deleted succesfuly")
+            else:
+                flash(f"Something went wrong ({x.status_code})")
+        elif request.form.get("add") == "yes":
+            values = request.form.to_dict()
+            del values["add"]
+            x = requests.post(f'{get_container("matches")}/referees', data=values)
+            if x.status_code == 201:
+                flash("Added succesfuly")
+            else:
+                flash(f"Something went wrong ({x.status_code})")
+        else:
+            # return jsonify(request.form)
+            x = requests.put(f'{get_container("matches")}/referees/{request.form.get("id")}', data=request.form)
+            if x.status_code == 200:
+                flash("Updated succesfuly")
+            else:
+                flash(f"Something went wrong ({x.status_code})")
+    if team:
+        x = requests.get(f'{get_container("matches")}/referees')
+        # return jsonify(x.json())
+        x = x.json()["data"]
+        return render_template("admin_referees.html", objects=x, obj_attr=["firstname", "lastname", "birthday"])
+    else:
+        return render_template("no_permission.html")
+
+@divisions_blueprint.route('/admin/clubs', methods=['GET', 'POST'])
+def admin_clubs():
+    team = request.cookies.get("team")
+    if request.method == 'POST':
+        if request.form.get("delete") == "yes":
+            x = requests.delete(f'{get_container("clubs")}/clubs/{request.form.get("stam_number")}')
+            if x.status_code == 200:
+                flash("Deleted succesfuly")
+            else:
+                flash(f"Something went wrong ({x.status_code})")
+        elif request.form.get("add") == "yes":
+            values = request.form.to_dict()
+            del values["add"]
+            x = requests.post(f'{get_container("clubs")}/clubs', data=values)
+            if x.status_code == 201:
+                flash("Added succesfuly")
+            else:
+                flash(f"Something went wrong ({x.status_code})")
+        else:
+            # return jsonify(request.form)
+            x = requests.put(f'{get_container("clubs")}/clubs/{request.form.get("stam_number")}', data=request.form)
+            if x.status_code == 200:
+                flash("Updated succesfuly")
+            else:
+                flash(f"Something went wrong ({x.status_code})")
+    if team:
+        x = requests.get(f'{get_container("clubs")}/clubs')
+        # return jsonify(x.json())
+        x = x.json()["data"]
+        return render_template("admin_clubs.html", objects=x, obj_attr=["name", "address", "zip", "city"])
+    else:
+        return render_template("no_permission.html")
+
+@divisions_blueprint.route('/admin/teams', methods=['GET', 'POST'])
+def admin_teams():
+    team = request.cookies.get("team")
+    if request.method == 'POST':
+        if request.form.get("delete") == "yes":
+            x = requests.delete(f'{get_container("clubs")}/teams/{request.form.get("id")}')
+            if x.status_code == 200:
+                flash("Deleted succesfuly")
+            else:
+                flash(f"Something went wrong ({x.status_code})")
+        elif request.form.get("add") == "yes":
+            values = request.form.to_dict()
+            del values["add"]
+            x = requests.post(f'{get_container("clubs")}/teams', data=values)
+            if x.status_code == 201:
+                flash("Added succesfuly")
+            else:
+                flash(f"Something went wrong ({x.status_code})")
+        else:
+            # return jsonify(request.form)
+            x = requests.put(f'{get_container("clubs")}/teams/{request.form.get("id")}', data=request.form)
+            if x.status_code == 200:
+                flash("Updated succesfuly")
+            else:
+                flash(f"Something went wrong ({x.status_code})")
+    if team:
+        x = requests.get(f'{get_container("clubs")}/teams')
+        # return jsonify(x.json())
+        x = x.json()["data"]
+        return render_template("admin_teams.html", objects=x, obj_attr=["club_id"])
+    else:
+        return render_template("no_permission.html")

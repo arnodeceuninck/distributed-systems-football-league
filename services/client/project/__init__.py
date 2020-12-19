@@ -16,6 +16,9 @@ def create_app(script_info=None):
     app_settings = os.getenv('APP_SETTINGS')
     app.config.from_object(app_settings)
 
+    # zou normaal uit app_settings moeten komen, ma werkte niet direct
+    app.config['SECRET_KEY'] = "top_secretahgdhjvdjksdfkjfdsjdsajkfkjasdjfjksdakjfasdjkfjksadjkfkjasdfjkasdkjf"
+
     # set up extensions
     db.init_app(app)
 
