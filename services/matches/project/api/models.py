@@ -92,6 +92,10 @@ class Match(db.Model):
         self.home = int(home)
         self.away = int(away)
         if referee_id is not None:
+            same_date_matches = Match.query.filter(Match.date == date, Match.time == time).all()
+            for match in same_date_matches:
+                if match.referee_id == int(referee_id):
+                    raise Exception("Referee double booked.")
             self.referee_id = referee_id
         if status_id is not None and status_id is not "NULL":
             try:
@@ -125,8 +129,16 @@ class Match(db.Model):
                 value = data[key]
                 if value == "None":
                     value = None
+                if key == "referee_id" and value is not None:
+                    same_date_matches = Match.query.filter(Match.date == self.date, Match.time == self.time).all()
+                    # print(f"Matches on same moment: {len(same_date_matches)}", file=sys.stderr)
+                    for match in same_date_matches:
+                        # print(f"{match.referee_id} != {value}", file=sys.stderr)
+                        if match.referee_id == int(value):
+                            raise Exception("Referee double booked.")
                 setattr(self, key, value)
-            except AttributeError:
+            except AttributeError as e:
+                # raise e
                 print(f"Warning:{key}, {data[key]} couldn't be added", file=sys.stderr)
 
 class Referee(db.Model):

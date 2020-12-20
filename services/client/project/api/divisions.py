@@ -215,7 +215,7 @@ def admin_matches():
             if x.status_code == 200:
                 flash("Updated succesfuly")
             else:
-                flash(f"Something went wrong ({x.status_code})")
+                flash(f"Something went wrong ({x.status_code}). Be sure the referee isn't double booked and all data entered is in the correct format.")
     if team:
         matchweek = request.args.get("week")
         if matchweek:
