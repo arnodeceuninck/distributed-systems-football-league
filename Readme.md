@@ -28,6 +28,8 @@ I've decided to make a service of things that where closely related. This was so
 ## API Calls
 Besides the CRUD operation, I've added API endpoints that seemed useful to me for the requirements from the assignment.
 
+# Login credentials
+The database is seeded with some sample data. There are also some accounts added. The password of each account is `password` (but can be changed per acoount from the admin interface). There is an account with the name `admin`. This is an admin account. There is also an account with the name `superadmin`. This is a superadmin account (can add new admins/superadmins). There are also accounts for the first 99 teams. The name of each of those accounts is `user<team_number>` (e.g. `user49` (with password `password`)). When logged in from a team account, you can edit your home scores and club info from the Team Admin panel. 
 
 ## User-related
 ### Users
