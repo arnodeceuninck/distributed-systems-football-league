@@ -3,6 +3,6 @@
 {% block content %}
     <h1>Kies een division</h1>
 {% for division in divisions["divisions"] %}
-    <a href="{{ url_for( "divisions.specific_division", division_id=division["id"]) }}" type="button" class="btn btn-primary">{{ division["name"] }}</a><br><br>
+    <a href="/web/divisions/{{division["id"]}}" type="button" class="btn btn-primary">{{ division["name"] }}</a><br><br>
 {% endfor %}
 {% endblock %}

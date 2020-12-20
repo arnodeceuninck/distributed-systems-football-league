@@ -5,7 +5,8 @@ Flask-Testing==0.8.0
 itsdangerous==1.1.0
 Jinja2==2.11.2
 MarkupSafe==1.1.1
+requests
+geopy
 psycopg2==2.8.6
 SQLAlchemy==1.3.20
 Werkzeug==1.0.1
-requests

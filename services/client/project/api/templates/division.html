@@ -11,7 +11,8 @@
     Team: {{ stats["best_defense"]["team"] }}<br>
     Counter goals: {{ stats["best_defense"]["count"] }}
     <h3>Most clean sheets</h3>
-    Team: {{ stats["most_clean_sheets"] }}
+    Team: {{ stats["most_clean_sheets"]["team"] }}
+    Count: {{ stats["most_clean_sheets"]["count"] }}
     <h2>League Table</h2>
     <table class="table">
         <thead>
@@ -73,7 +74,7 @@
                 <td>{{ match["status_id"] }}</td>
                 <td>{{ match["goals_home"] }}</td>
                 <td>{{ match["goals_away"] }}</td>
-                <td><a href="{{ url_for('divisions.fixture_detail', fixture_number=match["id"]) }}">More info</a></td>
+                <td><a href="/web/matches/{{ match["id"]}}">More info</a></td>
             </tr>
         {% endfor %}
         </tbody>

@@ -15,6 +15,8 @@ def ping_pong():
 @users_blueprint.route('/users', methods=['POST'])
 def add_user():
     post_data = request.form
+    if not post_data:
+        post_data = request.get_json()
     response_object = {
         'status': 'fail',
         'message': 'Invalid payload.'
@@ -37,10 +39,10 @@ def add_user():
             return jsonify(response_object), 201
         else:
             response_object['message'] = 'Sorry. That username already exists.'
-            return jsonify(response_object), 400
+            return jsonify(response_object), 401
     except exc.IntegrityError as e:
         db.session.rollback()
-        return jsonify(response_object), 400
+        return jsonify(response_object), 402
 
 
 @users_blueprint.route('/users/<user_id>', methods=['GET'])
@@ -65,6 +67,8 @@ def get_single_user(user_id):
 @users_blueprint.route('/users/authenticate', methods=['POST'])
 def authenticate():
     post_data = request.form
+    if not post_data:
+        post_data = request.get_json()
     response_object = {
         'status': 'fail',
         'message': 'Invalid payload.'

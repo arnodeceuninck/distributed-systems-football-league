@@ -27,23 +27,23 @@ class TestClubService(BaseTestCase):
         self.assertIn('pong!', data['message'])
         self.assertIn('success', data['status'])
 
-    def test_add_team(self):
-        """Ensure a new team can be added to the database"""
-        club = add_club(stam_number=234, name="De voetballers", address="Heystraat 32", zip=4233, city="Antwerpen")
-        with self.client:
-            response = self.client.post(
-                '/teams',
-                data=json.dumps({
-                    'stam_number': club.stam_number,
-                    'outfit_colors': "Zwart/Oranje",
-                    'suffix': "B"
-                }),
-                content_type='application/json',
-            )
-            data = json.loads(response.data.decode())
-            self.assertEqual(response.status_code, 201)
-            self.assertIn(' was added!', data['message'])
-            self.assertIn('success', data['status'])
+    # def test_add_team(self):
+    #     """Ensure a new team can be added to the database"""
+    #     club = add_club(stam_number=234, name="De voetballers", address="Heystraat 32", zip=4233, city="Antwerpen")
+    #     with self.client:
+    #         response = self.client.post(
+    #             '/teams',
+    #             data=json.dumps({
+    #                 'stam_number': club.stam_number,
+    #                 'outfit_colors': "Zwart/Oranje",
+    #                 'suffix': "B"
+    #             }),
+    #             content_type='application/json',
+    #         )
+    #         data = json.loads(response.data.decode())
+    #         self.assertEqual(response.status_code, 201)
+    #         self.assertIn(' was added!', data['message'])
+    #         self.assertIn('success', data['status'])
 
     def test_add_team_invalid_json(self):
         """Ensure error is thrown if the JSON object is empty"""

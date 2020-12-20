@@ -10,10 +10,11 @@
     <table class="table">
         <thead>
         <tr>
-            <th scope="col">Team {{ home }}</th>
-            <th scope="col">Team {{ away }}</th>
-            <th scope="col">Score team {{ home }}</th>
-            <th scope="col">Score team {{ away }}</th>
+            <th scope="col">Team home</th>
+            <th scope="col">Team away</th>
+            <th scope="col">Score team home</th>
+            <th scope="col">Score team away</th>
+            <th scope="col">Matchweek</th>
         </tr>
         </thead>
         <tbody>
@@ -21,8 +22,9 @@
             <tr>
                 <th scope="row">{{ match["home"] }}</th>
                 <td>{{ match["away"] }}</td>
-                <td>{{ match["score_home"] }}</td>
-                <td>{{ match["score_away"] }}</td>
+                <td>{{ match["goals_home"] }}</td>
+                <td>{{ match["goals_away"] }}</td>
+                <td>{{ match["matchweek"] }}</td>
             </tr>
         {% endfor %}
         </tbody>
@@ -51,7 +53,7 @@
                 <td>{{ match["time"] }}</td>
                 <td>{{ match["home"] }}</td>
                 <td>{{ match["away"] }}</td>
-                <td><a href="{{ url_for('divisions.fixture_detail', fixture_number=match["id"]) }}">More info</a></td>
+                <td><a href="/web/matches/{{match["id"]}}">More info</a></td>
             </tr>
         {% endfor %}
         </tbody>

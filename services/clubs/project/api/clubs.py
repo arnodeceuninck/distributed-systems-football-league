@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request, render_template
 from project.api.models import Club, Team
 from project import db
 from sqlalchemy import exc
+from psycopg2.errors import ForeignKeyViolation
 
 clubs_blueprint = Blueprint('clubs', __name__, template_folder='./templates')
 
@@ -16,6 +17,8 @@ def pint_pong():
 @clubs_blueprint.route('/clubs', methods=['POST'])
 def add_club():
     post_data = request.form
+    if not post_data:
+        post_data = request.get_json()
     response_object = {
         'status': 'fail',
         'message': 'Invalid payload.'
@@ -42,7 +45,7 @@ def add_club():
         else:
             response_object['message'] = 'Sorry. That stam number already exists.'
             return jsonify(response_object), 400
-    except exc.IntegrityError as e:
+    except (exc.IntegrityError, exc.NoForeignKeysError, ForeignKeyViolation) as e:
         db.session.rollback()
         return jsonify(response_object), 400
 
@@ -112,7 +115,7 @@ def update_obj(obj_id):
                 'status': 'success'
             }
             return jsonify(response_object), 200
-    except (ValueError, exc.DataError):
+    except (ValueError, exc.DataError, exc.IntegrityError, exc.NoForeignKeysError):
         return jsonify(response_object), 404
 
 

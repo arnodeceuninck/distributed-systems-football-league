@@ -15,6 +15,8 @@ def pint_pong():
 @teams_blueprint.route('/teams', methods=['POST'])
 def add_team():
     post_data = request.form
+    if not post_data:
+        post_data = request.get_json()
     response_object = {
         'status': 'fail',
         'message': 'Invalid payload.'
@@ -33,8 +35,7 @@ def add_team():
             'message': f'{team.id} was added!'
         }
         return jsonify(response_object), 201
-    except exc.IntegrityError as e:
-        raise e
+    except (exc.IntegrityError, exc.IntegrityError, exc.NoForeignKeysError) as e:
         db.session.rollback()
         return jsonify(response_object), 400
 

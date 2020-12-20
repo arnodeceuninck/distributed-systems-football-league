@@ -10,21 +10,22 @@
 
     {% if stats %}
         <h2>Stats</h2>
-        Total matches played against each other: {{ stats["total_matches_played"] }}.
+        Total matches played against each other: {{ stats["total_matches_played"] }}. <br>
         Team {{ home }} has won {{ stats["team1"]["times_won"] }} of these, team {{ away }} has won
         {{ stats["team2"]["times_won"] }} of these. <br>
 
-        Result last matches team {{ home }}: {{ results_1 }}
-        Result last matches team {{ away }}: {{ results_2 }}
+        Result last matches team {{ home }}: {{ results_1 }} <br>
+        Result last matches team {{ away }}: {{ results_2 }} <br>
 
         Scores last matches togehter: <br>
         <table class="table">
             <thead>
             <tr>
-                <th scope="col">Team {{ home }}</th>
-                <th scope="col">Team {{ away }}</th>
-                <th scope="col">Score team {{ home }}</th>
-                <th scope="col">Score team {{ away }}</th>
+                <th scope="col">Team home</th>
+                <th scope="col">Team away</th>
+                <th scope="col">Score team home</th>
+                <th scope="col">Score team away</th>
+            <th scope="col">Matchweek</th>
             </tr>
             </thead>
             <tbody>
@@ -32,8 +33,9 @@
                 <tr>
                     <th scope="row">{{ match["home"] }}</th>
                     <td>{{ match["away"] }}</td>
-                    <td>{{ match["score_home"] }}</td>
-                    <td>{{ match["score_away"] }}</td>
+                    <td>{{ match["goals_home"] }}</td>
+                    <td>{{ match["goals_away"] }}</td>
+                <td>{{ match["matchweek"] }}</td>
                 </tr>
             {% endfor %}
             </tbody>
@@ -43,8 +45,8 @@
 
     {% if weather %}
         <h2>Weather</h2>
-        Temparature: {{ weather["temp"] }}
-        Humidity: {{ weather["hum"] }}
-        Description: {{ weather["report"] }}
+        Temparature: {{ weather["temp"] }} <br>
+        Humidity: {{ weather["hum"] }} <br>
+        Description: {{ weather["report"] }} <br>
     {% endif %}
 {% endblock %}

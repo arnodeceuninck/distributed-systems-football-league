@@ -3,29 +3,34 @@ from project.api.containers import get_container
 import requests
 from datetime import datetime, timedelta,date
 
+from geopy import Nominatim, Location
+# from geopy import distance as dist
+from geopy.exc import GeocoderTimedOut
+
 divisions_blueprint = Blueprint('divisions', __name__, template_folder='./templates')
 
 
-@divisions_blueprint.route('/ping', methods=['GET'])
+@divisions_blueprint.route('//ping', methods=['GET'])
 def pint_pong():
     return render_template("pong.html")
 
-@divisions_blueprint.route('/', methods=['GET'])
+@divisions_blueprint.route('//', methods=['GET'])
 def home():
-    return redirect('/divisions')
+    return redirect('/web/divisions')
 
-@divisions_blueprint.route('/divisions', methods=['GET'])
+@divisions_blueprint.route('//divisions', methods=['GET'])
 def division_overview():
     x = requests.get(f'{get_container("matches")}/divisions')
     return render_template("divisions.html", divisions=x.json()["data"])
 
-@divisions_blueprint.route('/login', methods=['GET', 'POST'])
+@divisions_blueprint.route('//login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         x = requests.post(f'{get_container("users")}/users/authenticate', data=request.form)
         if x.status_code == 200:
             user = x.json()['data']
-            resp = make_response(redirect('/divisions'))
+            redirect_url = "/web/team_admin" if user["type"] == "user" else "/web/admin/divisions"
+            resp = make_response(redirect(redirect_url))
             resp.set_cookie('team', str(user["team_id"]))
             resp.set_cookie('user_type', str(user["type"]))
             flash("Login succesful")
@@ -34,14 +39,14 @@ def login():
             flash("Invalid credentials")
     return render_template("login.html")
 
-@divisions_blueprint.route('/logout', methods=['GET', 'POST'])
+@divisions_blueprint.route('//logout', methods=['GET', 'POST'])
 def logout():
-    resp = make_response(redirect('/divisions'))
+    resp = make_response(redirect('/web/divisions'))
     resp.set_cookie("team", '', expires=0)
     resp.set_cookie("user_type", '', expires=0)
     return resp
 
-@divisions_blueprint.route('/team_admin', methods=['GET', 'POST'])
+@divisions_blueprint.route('//team_admin', methods=['GET', 'POST'])
 def team_admin():
     if request.cookies.get("user_type") not in ["user", "admin", "superadmin"]:
         return render_template("no_permission.html")
@@ -63,18 +68,18 @@ def team_admin():
     else:
         return render_template("no_permission.html")
 
-@divisions_blueprint.route('/teams', methods=['GET'])
+@divisions_blueprint.route('//teams', methods=['GET'])
 def teams_overview():
     x = requests.get(f'{get_container("clubs")}/teams')
     return render_template("teams.html", divisions=x.json()["data"])
 
-@divisions_blueprint.route('/teams/<team_id>', methods=['GET'])
+@divisions_blueprint.route('//teams/<team_id>', methods=['GET'])
 def specific_team(team_id):
     x = requests.get(f'{get_container("clubs")}/teams/{team_id}').json()["data"]
     matches = requests.get(f'{get_container("matches")}/recent/{team_id}').json()["data"]
     return render_template("team.html", team=x, matches=matches)
 
-@divisions_blueprint.route('/divisions/<division_id>', methods=['GET'])
+@divisions_blueprint.route('//divisions/<division_id>', methods=['GET'])
 def specific_division(division_id):
     x = requests.get(f'{get_container("matches")}/divisions/{division_id}')
     team = request.args.get("team")
@@ -87,13 +92,21 @@ def specific_division(division_id):
     # return jsonify(x.json(), 200)
     return render_template("division.html", division=x.json()["data"]["name"], fixtures=fixtures["data"], stats=stats, league=league_table)
 
-def get_weather(city, date):
+def get_weather(address, city, date):
+    geolocator = Nominatim(user_agent="[PlaceHolder]", scheme='http')
+    try:
+        location = geolocator.geocode(f"{address}, {city}, Belgium")
+    except GeocoderTimedOut:
+        flash("The geolocator is timing out! please try again for weather")
+        return {"temp": None, "hum": None, "report": None}
+
+
     # Credits groot deel van deze code: Grepper
     BASE_URL = "https://api.openweathermap.org/data/2.5/weather?"
     CITY = "Hyderabad"
     from project.api.api_key import API_KEY
     # upadting the URL
-    URL = f'{BASE_URL}q={CITY},BE&appid={API_KEY}&day={date.day}&month={date.month}&year={date.year}'
+    URL = f'{BASE_URL}lat={location.latitude}&lon={location.longitude}&appid={API_KEY}&day={date.day}&month={date.month}&year={date.year}' # q={CITY},BE
     response = requests.get(URL)
     if response.status_code == 200:
         # getting data in the json format
@@ -108,7 +121,7 @@ def get_weather(city, date):
         # print("Error in the HTTP request")
         return {"temp": None, "hum": None, "report": None}
 
-@divisions_blueprint.route('/matches/<fixture_number>', methods=['GET'])
+@divisions_blueprint.route('//matches/<fixture_number>', methods=['GET'])
 def fixture_detail(fixture_number):
     x = requests.get(f'{get_container("matches")}/matches/{fixture_number}').json()["data"]
     home = x["home"]
@@ -123,52 +136,60 @@ def fixture_detail(fixture_number):
     results_2 = None
     match_date = datetime.strptime(date_, "%Y-%m-%d")
     if match_date.date() >= datetime.now().date():
-        stats = requests.get(f'/matches/stats/{home}/vs/{away}').json()["data"]
+        stats = requests.get(f'{get_container("matches")}/matches/stats/{home}/vs/{away}').json()["data"]
 
         results_1 = ""
         for match in stats["team1"]["last"]:
+            if match["goals_home"] is None or match["goals_away"] is None:
+                results_1 += "?"
+                continue
             if match["home"] == home:
-                if match["score_home"] > match["score_away"]:
+                if match["goals_home"] > match["goals_away"]:
                     results_1 += "W"
-                elif match["score_home"] == match["score_away"]:
+                elif match["goals_home"] == match["goals_away"]:
                     results_1 += "T"
-                elif match["score_home"] < match["score_away"]:
+                elif match["goals_home"] < match["goals_away"]:
                     results_1 += "L"
             elif match["away"] == home:
-                if match["score_home"] > match["score_away"]:
+                if match["goals_home"] > match["goals_away"]:
                     results_1 += "L"
-                elif match["score_home"] == match["score_away"]:
+                elif match["goals_home"] == match["goals_away"]:
                     results_1 += "T"
-                elif match["score_home"] < match["score_away"]:
+                elif match["goals_home"] < match["goals_away"]:
                     results_1 += "W"
 
         results_2 = ""
         for match in stats["team2"]["last"]:
+            if match["goals_home"] is None or match["goals_away"] is None:
+                results_2 += "?"
+                continue
             if match["home"] == away:
-                if match["score_home"] > match["score_away"]:
+                if match["goals_home"] > match["goals_away"]:
                     results_2 += "W"
-                elif match["score_home"] == match["score_away"]:
+                elif match["goals_home"] == match["goals_away"]:
                     results_2 += "T"
-                elif match["score_home"] < match["score_away"]:
+                elif match["goals_home"] < match["goals_away"]:
                     results_2 += "L"
             elif match["away"] == away:
-                if match["score_home"] > match["score_away"]:
+                if match["goals_home"] > match["goals_away"]:
                     results_2 += "L"
-                elif match["score_home"] == match["score_away"]:
+                elif match["goals_home"] == match["goals_away"]:
                     results_2 += "T"
-                elif match["score_home"] < match["score_away"]:
+                elif match["goals_home"] < match["goals_away"]:
                     results_2 += "W"
 
 
         if match_date.date() < datetime.now().date() + timedelta(days=7):
             # find the city
             stamnr = requests.get(f'{get_container("clubs")}/teams/{home}').json()["data"]["club_id"]
-            city = requests.get(f'{get_container("clubs")}/clubs/{stamnr}').json()["data"]["city"]
-            weather = get_weather(city, match_date)
+            club = requests.get(f'{get_container("clubs")}/clubs/{stamnr}').json()["data"]
+            address = club["address"]
+            city = club["city"]
+            weather = get_weather(address, city, match_date)
 
     return render_template("match.html", home=home, away=away, date=date_, time=time, referee=referee, stats=stats, results_1=results_1, results_2=results_2, weather=weather)
 
-@divisions_blueprint.route('/admin/matches', methods=['GET', 'POST'])
+@divisions_blueprint.route('//admin/matches', methods=['GET', 'POST'])
 def admin_matches():
     if request.cookies.get("user_type") not in ["admin", "superadmin"]:
         return render_template("no_permission.html")
@@ -196,14 +217,18 @@ def admin_matches():
             else:
                 flash(f"Something went wrong ({x.status_code})")
     if team:
-        x = requests.get(f'{get_container("matches")}/matches')
+        matchweek = request.args.get("week")
+        if matchweek:
+            x = requests.get(f'{get_container("matches")}/matches/week/{matchweek}')
+        else:
+            x = requests.get(f'{get_container("matches")}/matches')
         # return jsonify(x.json())
         x = x.json()["data"]
         return render_template("admin_matches.html", matches=x, obj_attr=["division_id", "matchweek", "date", "time", "home", "away"])
     else:
         return render_template("no_permission.html")
 
-@divisions_blueprint.route('/admin/divisions', methods=['GET', 'POST'])
+@divisions_blueprint.route('//admin/divisions', methods=['GET', 'POST'])
 def admin_divisions():
     if request.cookies.get("user_type") not in ["admin", "superadmin"]:
         return render_template("no_permission.html")
@@ -238,7 +263,7 @@ def admin_divisions():
     else:
         return render_template("no_permission.html")
 
-@divisions_blueprint.route('/admin/referees', methods=['GET', 'POST'])
+@divisions_blueprint.route('//admin/referees', methods=['GET', 'POST'])
 def admin_referees():
     if request.cookies.get("user_type") not in ["admin", "superadmin"]:
         return render_template("no_permission.html")
@@ -273,7 +298,7 @@ def admin_referees():
     else:
         return render_template("no_permission.html")
 
-@divisions_blueprint.route('/admin/clubs', methods=['GET', 'POST'])
+@divisions_blueprint.route('//admin/clubs', methods=['GET', 'POST'])
 def admin_clubs():
     if request.cookies.get("user_type") not in ["admin", "superadmin"]:
         return render_template("no_permission.html")
@@ -308,7 +333,7 @@ def admin_clubs():
     else:
         return render_template("no_permission.html")
 
-@divisions_blueprint.route('/admin/teams', methods=['GET', 'POST'])
+@divisions_blueprint.route('//admin/teams', methods=['GET', 'POST'])
 def admin_teams():
     if request.cookies.get("user_type") not in ["admin", "superadmin"]:
         return render_template("no_permission.html")
@@ -343,7 +368,7 @@ def admin_teams():
     else:
         return render_template("no_permission.html")
 
-@divisions_blueprint.route('/admin/users', methods=['GET', 'POST'])
+@divisions_blueprint.route('//admin/users', methods=['GET', 'POST'])
 def admin_users():
     if request.cookies.get("user_type") not in ["admin", "superadmin"]:
         return render_template("no_permission.html")

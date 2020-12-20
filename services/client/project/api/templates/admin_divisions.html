@@ -16,6 +16,8 @@
             <tr>
                 <form class="form-inline" method="post">
                     <input type="hidden" name="add" value="yes"/>
+
+                    <input type="hidden" name="id" value="0"/>
                     {% for attr in obj_attr %}
                         <td><input class="form-control mr-sm-2" id="{{ attr }}" name="{{ attr }}" type="search"
                                    placeholder="{{ attr }}" aria-label="Search"></td>

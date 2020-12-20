@@ -18,6 +18,8 @@ def pint_pong():
 @referees_blueprint.route('/referees', methods=['POST'])
 def add_referee():
     post_data = request.form
+    if not post_data:
+        post_data = request.get_json()
     response_object = {
         'status': 'fail',
         'message': 'Invalid payload.'

@@ -18,6 +18,8 @@ def pint_pong():
 @divisions_blueprint.route('/divisions', methods=['POST'])
 def add_division():
     post_data = request.form
+    if not post_data:
+        post_data = request.get_json()
     response_object = {
         'status': 'fail',
         'message': 'Invalid payload.'
@@ -147,6 +149,7 @@ def get_division_stats(division_id):
             return jsonify(response_object), 404
         else:
             goals_per_team = dict()
+            clean_per_team = dict()
             for match in Match.query.filter_by(division_id=division_id):
                 if match.goals_home == None or match.goals_away == None:
                     continue
@@ -157,22 +160,27 @@ def get_division_stats(division_id):
                 goals_per_team[match.away]["goals_against"] += match.goals_home
                 goals_per_team[match.home]["goals_against"] += match.goals_away
 
+                if match.goals_home == 0:
+                    clean_per_team.setdefault(match.away, 0)
+                    clean_per_team[match.away] += 1
+                if match.goals_away == 0:
+                    clean_per_team.setdefault(match.home, 0)
+                    clean_per_team[match.home] += 1
+
             best_attack = max(goals_per_team, key=lambda x: goals_per_team[x]["goals_scored"])
             best_defense = min(goals_per_team, key=lambda x: goals_per_team[x]["goals_against"])
 
 
-            most_clean_sheets = None
-            for team in goals_per_team:
-                if goals_per_team[team]["goals_scored"] == 0:
-                    most_clean_sheets = team
-                    break
+            # When a team does not allow their opponent team to score in the match then the team has kept a clean sheet
+            most_clean_sheets = max(clean_per_team, key=lambda x: clean_per_team[x])
 
             # TODO: Team most goals, team least goals conceded, team most clean sheets
             response_object = {
                 'status': 'success',
                 'data': {"best_attack": {"team": best_attack, "count": goals_per_team[best_attack]["goals_scored"]},
                          "best_defense": {"team": best_defense, "count": goals_per_team[best_defense]["goals_against"]},
-                         "most_clean_sheets": most_clean_sheets}
+                         "most_clean_sheets": {"team": most_clean_sheets, "count": clean_per_team[most_clean_sheets]}
+                         }
             }
             return jsonify(response_object), 200
     except (ValueError, exc.DataError):

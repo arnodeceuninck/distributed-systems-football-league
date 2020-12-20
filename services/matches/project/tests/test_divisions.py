@@ -37,8 +37,8 @@ class TestMatcheservice(BaseTestCase):
             data = json.loads(response.data.decode())
             self.assertEqual(response.status_code, 200)
             self.assertEqual(2, len(data['data']['matches']))
-            self.assertEqual(division.id, data['data']['matches'][0]["division"])
-            self.assertEqual(division.id, data['data']['matches'][1]["division"])
+            self.assertEqual(division.id, data['data']['matches'][0]["division_id"])
+            self.assertEqual(division.id, data['data']['matches'][1]["division_id"])
 
     def test_leauge_table(self):
         """Ensure new matches can be added to the database"""
@@ -101,7 +101,8 @@ class TestMatcheservice(BaseTestCase):
             self.assertEqual(7, data['data']['best_attack']["count"])
             self.assertEqual(42, data['data']['best_defense']["team"])
             self.assertEqual(1, data['data']['best_defense']["count"])
-            self.assertEqual(42, data['data']['most_clean_sheets'])
+            self.assertEqual(65, data['data']['most_clean_sheets']["team"])
+            self.assertEqual(1, data['data']['most_clean_sheets']["count"])
 
 if __name__ == '__main__':
     unittest.main()

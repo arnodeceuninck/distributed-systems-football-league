@@ -18,6 +18,8 @@ def pint_pong():
 @matches_blueprint.route('/matches', methods=['POST'])
 def add_match():
     post_data = request.form
+    if not post_data:
+        post_data = request.get_json()
     response_object = {
         'status': 'fail',
         'message': 'Invalid payload.'
@@ -129,8 +131,8 @@ def get_match_stats(team1, team2):
         times_2_won = matches.filter(or_(and_(Match.home == team2, Match.goals_home > Match.goals_away),
                                              and_(Match.away == team2, Match.goals_away > Match.goals_home))).count()
         last_3_together = matches.order_by(desc(Match.date)).limit(3).all()
-        last_5_team1 = previous_matches.filter(or_(Match.home == team1, Match.away == team1)).order_by(desc(Match.date)).limit(5).all()
-        last_5_team2 = previous_matches.filter(or_(Match.home == team2, Match.away == team2)).order_by(desc(Match.date)).limit(5).all()
+        last_5_team1 = previous_matches.filter(or_(Match.home == team1, Match.away == team1)).filter(and_(Match.goals_home != None, Match.goals_away != None)).order_by(desc(Match.date)).limit(5).all()
+        last_5_team2 = previous_matches.filter(or_(Match.home == team2, Match.away == team2)).filter(and_(Match.goals_home != None, Match.goals_away != None)).order_by(desc(Match.date)).limit(5).all()
 
         response_object = {
             'status': 'success',
@@ -180,4 +182,11 @@ def get_home(team1):
     except (ValueError, exc.DataError):
         return jsonify(response_object), 404
 
-
+@matches_blueprint.route('/matches/week/<week_id>', methods=['GET'])
+def get_matches_by_week(week_id):
+    """Get all matches"""
+    response_object = {
+        'status': 'success',
+        'data': {'matches': [match.to_json() for match in Match.query.filter(Match.matchweek == week_id).all()]}
+    }
+    return jsonify(response_object), 200
