@@ -26,11 +26,12 @@ def add_user():
     username = post_data.get('username')
     password = post_data.get('password')
     team_id = post_data.get('team_id')
+    email = post_data.get('email')
     type = post_data.get('type')
     try:
         user = User.query.filter_by(username=username).first()
         if not user:
-            db.session.add(User(username=username, password=password, team_id=team_id, type=type))
+            db.session.add(User(username=username, password=password, team_id=team_id, type=type, email=email))
             db.session.commit()
             response_object = {
                 'status': 'success',

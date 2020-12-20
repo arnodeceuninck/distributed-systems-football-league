@@ -161,6 +161,7 @@ def get_team_recent(team1):
             'data': {"previous": [match.to_json() for match in previous_matches],
                      "upcoming": [match.to_json() for match in upcoming_matches]}
         }
+
         return jsonify(response_object), 200
     except (ValueError, exc.DataError):
         return jsonify(response_object), 404

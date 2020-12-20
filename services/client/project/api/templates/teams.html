@@ -3,6 +3,6 @@
 {% block content %}
     <h1>Kies een team</h1>
 {% for team in teams["teams"] %}
-    <a href="{{ url_for( "divisions.specific_team", team_id=team["id"]) }}" type="button" class="btn btn-primary">{{ team["name"] }}</a><br><br>
+    <a href="/web/teams/{{team["id"]}}" type="button" class="btn btn-primary">{{ team["id"] }}</a><br><br>
 {% endfor %}
 {% endblock %}

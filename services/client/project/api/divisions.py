@@ -71,12 +71,15 @@ def team_admin():
 @divisions_blueprint.route('//teams', methods=['GET'])
 def teams_overview():
     x = requests.get(f'{get_container("clubs")}/teams')
-    return render_template("teams.html", divisions=x.json()["data"])
+    # return jsonify(x.json())
+    return render_template("teams.html", teams=x.json()["data"])
 
 @divisions_blueprint.route('//teams/<team_id>', methods=['GET'])
 def specific_team(team_id):
     x = requests.get(f'{get_container("clubs")}/teams/{team_id}').json()["data"]
-    matches = requests.get(f'{get_container("matches")}/recent/{team_id}').json()["data"]
+    matches = requests.get(f'{get_container("matches")}/matches/recent/{team_id}')
+    # return jsonify(matches)
+    matches = matches.json()["data"]
     return render_template("team.html", team=x, matches=matches)
 
 @divisions_blueprint.route('//divisions/<division_id>', methods=['GET'])

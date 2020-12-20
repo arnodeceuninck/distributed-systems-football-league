@@ -6,11 +6,12 @@ class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(128), nullable=False, unique=True)
+    email = db.Column(db.String(128), nullable=True)
     password = db.Column(db.String(128), nullable=False) # Ah yes, plain text passwords
     team_id = db.Column(db.Integer, nullable=True)
     type = db.Column(db.String(128), nullable=False)
 
-    def __init__(self, username, password="password", type="user", team_id=-1):
+    def __init__(self, username, password="password", type="user", team_id=-1, email = None):
         if type is None:
             type = "user"
         assert type in ["user", "admin", "superadmin"]
@@ -25,9 +26,10 @@ class User(db.Model):
         self.username = username
         self.password = password # Hashing passwords is out of the scope of this course
         self.team_id = team_id
+        self.email = email
 
     def to_json(self):
-        return {'id': self.id, 'username': self.username, 'password': self.password, 'team_id': self.team_id, 'type': self.type}
+        return {'id': self.id, 'username': self.username, 'password': self.password, 'team_id': self.team_id, 'type': self.type, 'email': self.email}
 
     def update(self, data):
         for key in data:
